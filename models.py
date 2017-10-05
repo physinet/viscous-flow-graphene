@@ -1,4 +1,4 @@
-from constants import e
+from .constants import e
 from scipy.integrate import quad
 from scipy.interpolate import interp2d
 import numpy as np
@@ -373,7 +373,7 @@ class PoliniDevice(Device):
             return (term1*term2 - term3*term4) / term5**2
 
         phi = I/sigma0 * (
-            F1(X+x0) - F1(X-x0) + 2*D**2/W**2 * ( # factor of 2 dropped?
+            F1(X+x0) - F1(X-x0) + D**2/W**2 * ( # factor of 2 dropped
                 F2(X+x0) - F2(X-x0)
             )
         )
@@ -423,5 +423,6 @@ class PoliniDevice(Device):
                 f3p[j,i] = F3((X[j,i]+x0)/W, Y[j,i]/W)
                 f3m[j,i] = F3((X[j,i]-x0)/W, Y[j,i]/W)
 
-        self.omega = 2*I/(n*W**2) * (f3p - f3m) # factor of 2 dropped? I think it's a typo in the paper.
+        # factor of 2 dropped. Typo in paper?
+        self.omega = I/(n*W**2) * (f3p - f3m)
         return self.omega

@@ -6,9 +6,9 @@ import scipy.sparse.linalg as spla
 from scipy.interpolate import interp2d
 from matplotlib.patches import Rectangle
 
-from contact import Contact
-from simulation import Simulation
-import constants
+from .contact import Contact
+from .simulation import Simulation
+from . import constants
 
 class ViscousSimulation(Simulation):
     def __init__(self, L, W, M, N, I, n, mu, nu, l, contacts, bc):
@@ -50,8 +50,9 @@ class ViscousSimulation(Simulation):
         self.rho = 1 / self.sigma  # resistivity, Ohm/sq
 
         self.contacts = contacts
+        for c in self.contacts:
+            c.generate_coords(self.x, self.y)
 
-        self.setup_contacts()
         self.setup_indexing()
 
         self.bc = bc
@@ -444,9 +445,9 @@ class ViscousSimulation(Simulation):
 
         for var in ['phi', 'jx', 'jy', 'omega']:
             if hasattr(self, var):
-                f = interp2d(self.x, self.y, getattr(self, var))
+                setattr(self, 'f'+var, interp2d(self.x, self.y, getattr(self, var)))
 
-                setattr(self, (var+'1'), f(self.x1, self.y1))
+                setattr(self, (var+'1'), getattr(self, 'f'+var)(self.x1, self.y1))
 
 
 
@@ -566,7 +567,7 @@ class ViscousSimulation(Simulation):
         self.add_navier_stokes_equations()
         self.add_perp_boundary_equations()
         self.add_contact_boundary_equations()
-        self.add_parallel_boundary_equations(bc)
+        self.add_parallel_boundary_equations()
         if extra_equation:
             self.add_potential_equation()
 
@@ -574,11 +575,6 @@ class ViscousSimulation(Simulation):
         self.extract_grids(delete_phantoms)
 
         self.save()
-
-
-    def setup_contacts(self):
-        for c in self.contacts:
-            c.generate_coords(self.x, self.y)
 
 
     def setup_indexing(self):
@@ -590,7 +586,7 @@ class ViscousSimulation(Simulation):
         N = self.N
         M = self.M
 
-        self.idx_phi_mat = np.reshape(range(M*N), [N, M])  # shape is y, x
+        self.idx_phi_mat = np.reshape(range(M*N), [N, M])  # shape is (y, x)
         Nphi = len(self.idx_phi_mat.flatten())
 
         i=0
@@ -617,7 +613,7 @@ class ViscousSimulation(Simulation):
         Nv = len(self.idx_v_mat.flatten())
 
         def idx_phi(m,n):
-            assert m >= 0 # make sure we don't accidentally pass -1 and roll to the end of the matrix.
+            assert m >= 0  # prevent accidental negative indexing
             assert n >= 0
             return self.idx_phi_mat[n,m]
         self.idx_phi = idx_phi
@@ -651,12 +647,12 @@ class ViscousSimulation(Simulation):
         self.b = np.zeros(s)
 
 
-    def solve(self, normalize=True, alg='lsmr', tol=1e-11):
+    def solve(self, normalize=True, alg='lsmr', tol=1e-10):
         '''
         Solves for all unknown variables using least squares.
         Normalize (bool): Should we normalize by max of each row?
         alg: spsolve, lsqr or lsmr - all scipy.sparse methods
-        tol: tolerance atol (and btol) for lsmr.
+        tol: tolerance atol (and btol) for lsmr. Default 1e-10
         '''
         t = time.time()
 

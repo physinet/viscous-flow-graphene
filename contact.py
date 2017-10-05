@@ -8,7 +8,8 @@ class Contact():
         ----------
         side: (string) Side of device contact is on. ('b', 't', 'l', or 'r')
         center: (float) position (um) of center of contact
-        Npts: (float) # grid points comprising the contact. Recommended to do odd numbers for symmetry.
+        Npts: (float) # grid points comprising the contact.
+            Recommendeded to do odd numbers for symmetry.
         I: (float) current bias (Ampere)
         kind: (string) ('source', 'drain', or 'float')
         '''
@@ -80,58 +81,3 @@ class Contact():
 
         if len(self.coords) != self.Npts:
             raise Exception('Not enough coordinates. Something went wrong.')
-
-
-
-class OldContact():
-    def __init__(self, side, start, end, I, kind='float'):
-        '''
-        Parameters
-        ----------
-        side: (string) Side of device contact is on. ('b', 't', 'l', or 'r')
-        start: (int) first grid index of the contact
-        end: (int) last grid index of the contact
-        I: (float) current bias (Ampere)
-        kind: (string) ('source', 'drain', or 'float')
-        '''
-
-        assert side in ('b','t', 'l','r') # bottom, top, left, right
-        assert type(start) is int
-        assert type(end) is int
-        assert start >= 0
-        assert end >= start
-        assert kind in ('source', 'drain', 'float')
-
-        self.side = side
-        self.start = start  # start grid point
-        self.end = end  # end grid point
-        self.width = end-start + 1
-
-        if kind == 'float':
-            self.current = 0
-        else:  # source or drain
-            if side in ('t', 'r'):
-                self.current = -I  # e.g., current sourced from top is in -y direction
-            else:
-                self.current = I
-            if kind == 'drain':
-                self.current *= -1  # current should go the other way
-        self.kind = kind
-
-    def generate_coords(self, M, N):
-        self.coords = []
-        if self.side == 'b':
-            for i in range(self.end-self.start+1):
-                self.coords.append((self.start + i, 0))
-
-        if self.side == 't':
-            for i in range(self.end-self.start+1):
-                self.coords.append((self.start + i, N-1))
-
-        if self.side == 'l':
-            for i in range(self.end-self.start+1):
-                self.coords.append((0, self.start + i))
-
-        if self.side == 'r':
-            for i in range(self.end-self.start+1):
-                self.coords.append((M-1, self.start + i))

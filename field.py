@@ -4,8 +4,8 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as spla
 from matplotlib.patches import Rectangle
 
-from contact import Contact
-import constants
+from .contact import Contact
+from . import constants
 
 class FieldSimulation():
     def __init__(self, jx, jy, L, W):

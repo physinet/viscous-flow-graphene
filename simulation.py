@@ -166,7 +166,8 @@ class Simulation:
         try:
             exec(obj_dict['py/object']) # see if class is in the namespace
         except:
-            obj_dict['py/object'] = 'navier_stokes_grid.ViscousSimulation'
+            obj_dict['py/object'] = 'viscous_flow_graphene.navier_stokes_grid.ViscousSimulation'
+
 
         # Decode with jsonpickle.
         obj_string = json.dumps(obj_dict)
