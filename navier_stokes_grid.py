@@ -38,7 +38,7 @@ class ViscousSimulation(Simulation):
 
         # Position coordinates of the centers of the cells
         self.x = np.linspace(-self.L/2, self.L/2, M, endpoint=False) + self.dx/2
-        self.y = np.linspace(0, self.W, N, endpoint=False) + self.dy/2
+        self.y = np.linspace(-self.W/2, self.W/2, N, endpoint=False) + self.dy/2
 
         self.n = n * 100**2  # to m^-2
         self.mu = mu / 100**2  # to m^2/V*s
