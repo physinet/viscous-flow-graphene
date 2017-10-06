@@ -51,7 +51,10 @@ class Contact():
         print('Contact', self.kind, 'actual width', self.width*1e6, 'um')
 
         # Center point shifted to nearest grid point
-        self.center = x[abs(x-self.center).argmin()]
+        if self.side in ('t','b'):
+            self.center = x[abs(x-self.center).argmin()]
+        else:
+            self.center = y[abs(y-self.center).argmin()]
         print('Center shifted to %.4f' %(self.center*1e6))
 
         if self.side == 'b':
