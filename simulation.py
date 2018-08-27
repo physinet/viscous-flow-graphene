@@ -8,7 +8,7 @@ jspnp.register_handlers()
 from copy import copy
 import h5py, glob, matplotlib, inspect, platform, hashlib, shutil, time
 import matplotlib.pyplot as plt
-import utilities
+from scipy.sparse import spmatrix
 
 '''
 How saving and loading works:
@@ -49,7 +49,7 @@ class Simulation:
                 ## Don't save numpy arrays to JSON
                 if type(d[var]) is np.ndarray:
                     d[var] = None
-                elif 'spmatrix' in utilities.get_superclasses(d[var]):
+                elif isinstance(d[var], spmatrix):
                     d[var] = None
 
                 ## Don't save matplotlib objects to JSON
@@ -69,7 +69,7 @@ class Simulation:
 
 
                 ## Walk through dictionaries
-                if 'dict' in utilities.get_superclasses(d[var]):
+                if isinstance(d[var], dict):
                     d[var] = walk(d[var]) # This unfortunately erases the dictionary...
 
             return d # only return ones that are the right type.
@@ -155,7 +155,7 @@ class Simulation:
                     elif 'py/id' in d: # This is probably another instance of an Instrument.
                         d = None # Don't load it.
                         break
-                if 'dict' in utilities.get_superclasses(d[key]):
+                if isinstance(d[key], dict):
                     d[key] = walk(d[key])
             return d
 
@@ -271,15 +271,15 @@ class Simulation:
                         d.set_fill_value = np.nan
                         # Fill the dataset with the corresponding value
                         d[...] = value
-                    elif 'spmatrix' in utilities.get_superclasses(value):
+                    elif isinstance(value, spmatrix):
                         continue
                     # If a dictionary is found
-                    elif 'dict' in utilities.get_superclasses(value):
+                    elif isinstance(value, dict):
                         new_group = group.create_group(key) # make a group with the dictionary name
                         walk(value, new_group) # walk through the dictionary
                     # If the there is some other object
                     elif hasattr(value, '__dict__'):
-                        if 'Simulation' in utilities.get_superclasses(value): # restrict saving Simulations.
+                        if isinstance(value, Simulation): # restrict saving Simulations.
                             new_group = group.create_group('!'+key) # make a group with !(object name)
                             walk(value.__dict__, new_group) # walk through the object dictionary
 
