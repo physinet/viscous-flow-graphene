@@ -7,7 +7,7 @@ from datetime import datetime
 jspnp.register_handlers()
 from copy import copy
 import h5py, glob, matplotlib, inspect, platform, hashlib, shutil, time
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt, socket
 from scipy.sparse import spmatrix
 
 '''
@@ -433,7 +433,7 @@ def exists(filename):
     return False
 
 def get_computer_name():
-    computer_name = utilities.get_computer_name()
+    computer_name = socket.gethostname()
     aliases = {'SPRUCE': 'bluefors', 'HEMLOCK': 'montana'} # different names we want to give the directories for each computer
     if computer_name in aliases.keys():
         computer_name = aliases[computer_name]

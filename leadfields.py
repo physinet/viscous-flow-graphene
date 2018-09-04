@@ -18,7 +18,7 @@ def Blead(x, y, x0, y0, z0, w, I, direction, infinity):
     x0/y0: termination point on device (m)
     z0: height above device (m)
     w: width of wire (m)
-    I: bias current (A)
+    I: bias current (A). Positive current flows in +`direction`
     direction ('x' or 'y'): direction of wire
     infinity ('+' or '-'): which infinity the wire extends to
     '''
@@ -27,7 +27,8 @@ def Blead(x, y, x0, y0, z0, w, I, direction, infinity):
 
     if direction == 'x':  # calculation assumes vertical
         x, y, x0, y0 = y, x, y0, x0  # swap coordinates
-        
+        I *= -1  # fix sign
+
     if infinity == '+':  # calculation assumes -infinity
         alpha = -1  # will flip the sign of the last two terms
     else:
