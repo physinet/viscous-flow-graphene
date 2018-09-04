@@ -5,6 +5,7 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as spla
 from scipy.interpolate import interp2d
 from matplotlib.patches import Rectangle
+from functools import partial
 
 from .contact import Contact
 from .simulation import Simulation
@@ -434,21 +435,33 @@ class ViscousSimulation(Simulation):
         self.phi /= -(self.n * self.mu * constants.e) * 1e6  # Scale Phi to Voltage # we scaled out by 1e6 in the Navier-Stokes equations.
 
 
-    def interpolate(self, newM, newN):
+    def interpolate(self, newM=None, newN=None):
         '''
         Interpolate results to a new grid spacing.
         Interpolated matrices stored as phi1, jx1, jy1.
         Interpolated position variables stored as x1, y1.
         '''
-        self.x1 = np.linspace(self.x.min(), self.x.max(), newM)
-        self.y1 = np.linspace(self.y.min(), self.y.max(), newN)
+        if newM is not None:
+            self.x1 = np.linspace(self.x.min(), self.x.max(), newM)
+            self.y1 = np.linspace(self.y.min(), self.y.max(), newN)
 
         for var in ['phi', 'jx', 'jy', 'omega']:
             if hasattr(self, var):
-                setattr(self, 'f'+var, interp2d(self.x, self.y, getattr(self, var)))
+                f = interp2d(self.x, self.y, getattr(self, var))
+                # Fix boundaries so current doesn't leak outside device.
+                def f2(f=f, x=self.x, y=self.y): # need to specify all as kwargs so copies are made
+                    # transpose because y is columns of 2D matrix returned by f
+                    m = f(x,y).T * (y > self.y.min() - self.dy / 2) \
+                                 * (y < self.y.max() + self.dy / 2)
+                    # untranspose
+                    m2 = m.T * (x > self.x.min() - self.dx / 2) \
+                             * (x < self.x.max() + self.dx / 2)
 
-                setattr(self, (var+'1'), getattr(self, 'f'+var)(self.x1, self.y1))
+                    return m2
 
+                setattr(self, 'f'+var, partial(f2, f)) # partial is necessary to ensure f2 has the right copy of f
+                if newM is not None:
+                    setattr(self, (var+'1'), getattr(self, 'f'+var)(self.x1, self.y1))
 
 
     def is_contact(self, m, n):
