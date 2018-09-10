@@ -6,12 +6,10 @@ from jsonpickle.ext import numpy as jspnp
 import json, os, jsonpickle as jsp, numpy as np, subprocess, numpy
 from datetime import datetime as dt
 jspnp.register_handlers() # what is purpose of this line?
-import h5py, glob, matplotlib, platform, hashlib, shutil
+import h5py, glob, matplotlib, platform, hashlib, shutil, socket
 import matplotlib.pyplot as plt
-from . import utilities
-import Nowack_Lab # Necessary for saving as Nowack_Lab-defined types
 
-from .plotting.plotter import Plotter
+import viscous_flow_graphene
 
 '''
 How saving and loading works:
@@ -202,7 +200,7 @@ class Saver(object):
                         else:
                             print('Cannot find class definition {0}: '.format(
                                 classname) + 'using Saver object')
-                            d['py/object'] = 'Nowack_Lab.Utilities.save.Saver'
+                            d['py/object'] = 'viscous_flow_graphene.save.Saver'
                 if isinstance(d[key], dict):
                     d[key] = walk(d[key])
             return d
@@ -402,7 +400,7 @@ def exists(filename):
 
 
 def get_computer_name():
-    computer_name = utilities.get_computer_name()
+    computer_name = socket.gethostname()
     aliases = {'SPRUCE': 'bluefors', 'HEMLOCK': 'montana'} # different names we want to give the directories for each computer
     if computer_name in aliases.keys():
         computer_name = aliases[computer_name]

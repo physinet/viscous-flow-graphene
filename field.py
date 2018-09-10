@@ -1,4 +1,5 @@
 import numpy as np
+import time
 import matplotlib.pyplot as plt
 import scipy.sparse as sp
 import scipy.sparse.linalg as spla
@@ -6,9 +7,10 @@ from matplotlib.patches import Rectangle
 from scipy.interpolate import interp2d
 
 from .contact import Contact
+from .save import Saver
 from . import constants
 
-class FieldSimulation():
+class FieldSimulation(Saver):
     def __init__(self, x, y, jx, jy, x0, y0, z0=1e-7):
         '''
         Calculate fields from a given 2D current distrubiton using descretized
@@ -30,6 +32,7 @@ class FieldSimulation():
         self.dx0, self.dy0 = np.diff(self.x0[0,:])[0], np.diff(self.y0[:,0])[0]
 
     def calc_Bz(self):
+        t0 = time.time()
         jx, jy = self.jx, self.jy
         x, y = self.x, self.y
         x0, y0, z0 = self.x0, self.y0, self.z0
@@ -44,6 +47,8 @@ class FieldSimulation():
                 dB = num/denom
                 Bz[n,m] = dB[~np.isnan(dB)].sum()
         self.Bz = Bz * constants.mu0 / (4*np.pi) * self.dx0 * self.dy0
+
+        self.time_elapsed_s = time.time()-t0
 
     def interpolate(self):
         '''
